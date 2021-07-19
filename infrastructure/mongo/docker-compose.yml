@@ -1,4 +1,4 @@
-version: '2'
+version: "2"
 
 services:
   mongodb:
@@ -7,7 +7,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - 'mongodb_data:/bitnami/mongodb'
+      - "mongodb_data:/bitnami/mongodb"
     restart: always
   mongo-express:
     image: mongo-express
