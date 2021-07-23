@@ -5,6 +5,7 @@ from .config import ConfigContainer, ConfigService
 from csv import DictReader
 from dependency_injector.wiring import Provide
 from praw import Reddit
+from prawcore.exceptions import NotFound
 from pymongo import MongoClient
 
 logger = logging.getLogger("main")
@@ -36,7 +37,10 @@ def reddit_connect(config_svc: ConfigService):
     logger.info("connected to Reddit")
     return reddit
 
+
 collection_name: str = "submission_records"
+
+
 def main(config_svc: ConfigService = Provide[ConfigContainer.config_svc].provider()):
     db = mongo_connect(config_svc.property("mongoUrl"))
     reddit = reddit_connect(config_svc)
@@ -50,11 +54,19 @@ def main(config_svc: ConfigService = Provide[ConfigContainer.config_svc].provide
 
             submission = reddit.submission(id=row["id"])
 
+            author = None
+            try:
+                # author look up will fail if we received an invalid submission object
+                author = submission.author
+            except NotFound:
+                logger.info("Skipping submission " + submission.shortlink)
+                continue
+
             submission_record = {
                 "id": submission.id,
                 "permalink": submission.shortlink,
-                "author": submission.author.name if submission.author else "",
-                "author_deleted": submission.author == None,
+                "author": author.name if author else "",
+                "author_deleted": author == None,
                 "created_utc": submission.created_utc,
                 "title": submission.title,
                 "selftext": submission.selftext,
@@ -74,7 +86,7 @@ def main(config_svc: ConfigService = Provide[ConfigContainer.config_svc].provide
                 "is_removed_by_moderator": submission.selftext == "[removed]",
                 "is_removed_by_author": submission.selftext == "[deleted]",
             }
-            
+
             title_emoji = []
             for raw_emoji in emoji.distinct_emoji_lis(submission.title):
                 title_emoji.append(emoji.demojize(raw_emoji))
@@ -85,7 +97,11 @@ def main(config_svc: ConfigService = Provide[ConfigContainer.config_svc].provide
                 body_emoji.append(emoji.demojize(raw_emoji))
             submission_record["body_emoji"] = body_emoji
 
-            db[collection_name].update_one({'id': submission_record['id']}, {'$set': submission_record}, upsert=True)
+            db[collection_name].update_one(
+                {"id": submission_record["id"]},
+                {"$set": submission_record},
+                upsert=True,
+            )
 
 
 if __name__ == "__main__":

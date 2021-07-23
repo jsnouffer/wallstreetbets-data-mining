@@ -1,0 +1,13 @@
+TF-IDF wihtout BERT
+
+IE: Introversion (I) / Extroversion (E) Accuracy: 76.77%
+NS: Intuition (N) / Sensing (S) Accuracy: 85.85%
+FT: Feeling (F) / Thinking (T) Accuracy: 69.40%
+JP: Judging (J) / Perceiving (P) Accuracy: 62.66%
+
+TF-IDF with BERT
+
+IE: Introversion (I) / Extroversion (E) Accuracy: 76.53%
+NS: Intuition (N) / Sensing (S) Accuracy: 86.06%
+FT: Feeling (F) / Thinking (T) Accuracy: 69.72%
+JP: Judging (J) / Perceiving (P) Accuracy: 62.03%
