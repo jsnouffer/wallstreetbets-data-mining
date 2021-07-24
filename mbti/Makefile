@@ -18,5 +18,8 @@ update: ## Updates dependencies in virtual environment
 	venv/bin/pip install -r requirements.txt
 	venv/bin/pip install torch==1.9.0+cpu torchvision==0.10.0+cpu torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
 
+generate-model: venv ## Generate new model
+	CONFIG_ENV=config.env venv/bin/python -m mbti --generate-model
+
 run: venv ## Launches app using virtual environment
 	CONFIG_ENV=config.env venv/bin/python -m mbti
