@@ -42,7 +42,7 @@ def load_models(config: ConfigService = Provide[ConfigContainer.config_svc].prov
             models[p_type] = model
     return models
 
-def classify(sample, models, config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+def classify(sample, models):
     predictions = {}
     type_array = ['','','','']
     for p_type in models.keys():
@@ -63,7 +63,7 @@ def classify(sample, models, config: ConfigService = Provide[ConfigContainer.con
     predictions["type"] = type_array[0] + type_array[1] + type_array[2] + type_array[3]
     return predictions
 
-def train(list_posts, list_personality):
+def train(list_posts, list_personality, config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
     for l in range(len(personality_type)):
 
         Y = list_personality[:, l]

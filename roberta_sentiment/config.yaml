@@ -1,0 +1,20 @@
+transformersModel: cardiffnlp/twitter-roberta-base-{task}
+transformersModelLabelMapping: https://raw.githubusercontent.com/cardiffnlp/tweeteval/main/datasets/{task}/mapping.txt
+
+mongoUrl: localhost:27017
+mongoDB: wallstreetbets
+
+logging:
+  version: 1
+  formatters:
+    simple:
+      format: "%(name)s - %(lineno)d -  %(message)s"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+  root:
+    level: INFO
+    handlers: [console]
