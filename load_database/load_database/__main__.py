@@ -38,16 +38,12 @@ def reddit_connect(config_svc: ConfigService):
     return reddit
 
 
-collection_name: str = "submission_records"
+def main(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+    db = mongo_connect(config.property("mongoUrl"))
+    reddit = reddit_connect(config)
+    collection_name: str = config.property("mongoDB")
 
-
-def main(config_svc: ConfigService = Provide[ConfigContainer.config_svc].provider()):
-    db = mongo_connect(config_svc.property("mongoUrl"))
-    reddit = reddit_connect(config_svc)
-
-    with open(
-        "/home/jason/wallstreetbets/data/kaggle_012821_to_071621/reddit_wsb.csv", "r"
-    ) as read_obj:
+    with open(config.property("trainingData"), "r") as read_obj:
         for row in DictReader(read_obj):
             if bool(db[collection_name].find_one({"id": row["id"]})):
                 continue

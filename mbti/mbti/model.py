@@ -42,7 +42,7 @@ def load_models(config: ConfigService = Provide[ConfigContainer.config_svc].prov
             models[p_type] = model
     return models
 
-def classify(sample, models):
+def classify(sample, models, config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
     predictions = {}
     type_array = ['','','','']
     for p_type in models.keys():
@@ -102,5 +102,5 @@ def train(list_posts, list_personality):
         print("%s Accuracy: %.2f%%" % (personality_type[l], accuracy * 100.0))
 
         pickle.dump(
-            model, open("/home/jason/mbti_model/" + personality_type[l] + ".p", "wb")
+            model, open(config.property("modelFolder") + personality_type[l] + ".p", "wb")
         )

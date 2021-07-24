@@ -1,3 +1,5 @@
+trainingData: /home/jason/wallstreetbets/data/kaggle_012821_to_071621/reddit_wsb.csv
+
 mongoUrl: localhost:27017
 reddit:
   client-id: Cz8OU1vxajnWDw

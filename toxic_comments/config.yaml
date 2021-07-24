@@ -1,5 +1,5 @@
-trainingData: /home/jason/mbti_model/mbti_1.csv
-modelFolder: /home/jason/mbti_model/
+trainingData: /home/jason/toxic_model/train_preprocessed.csv
+modelLocation: /home/jason/toxic_model/toxic_keras/
 
 mongoUrl: localhost:27017
 mongoDB: wallstreetbets
