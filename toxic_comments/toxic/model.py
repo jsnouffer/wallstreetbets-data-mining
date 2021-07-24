@@ -10,14 +10,27 @@ from tensorflow.keras.layers.experimental.preprocessing import TextVectorization
 from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import CategoricalCrossentropy
 from tensorflow.keras.optimizers import Adam
+from tensorflow.python.framework.errors_impl import InvalidArgumentError
 
 
 MAX_VOCAB = 500
 
 
-def load_models(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+def load_model(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
     return models.load_model(config.property("modelLocation"))
 
+def classify(sample, model, labels, config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+    predictions = {}
+    try:
+        prediction = model.predict([sample])
+    except InvalidArgumentError as e:
+        print(e.message)
+        return predictions
+
+    for l in range(len(labels)):
+        predictions[labels[l]] = True if prediction[0][l] > 0.5 else False
+    
+    return predictions
 
 def get_encoder(sequences):
     encoder = TextVectorization(

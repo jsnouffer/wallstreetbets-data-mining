@@ -4,6 +4,7 @@ import pandas as pd
 
 from .config import ConfigContainer, ConfigService
 from .model import *
+from .mongo import mongo_connect
 from .text_wrangle import *
 from dependency_injector.wiring import Provide
 
@@ -20,35 +21,44 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def generate_model(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+def generate_model(
+    config: ConfigService = Provide[ConfigContainer.config_svc].provider(),
+):
     df = pd.read_csv(config.property("trainingData"))
     logger.info(f"Input shape = {df.shape}")
     sequences, targets, labels = pre_process(df)
     train(sequences, targets, labels)
 
 
-def main():
-    # collection = mongo_connect().submission_records
-    model = load_models()
-    print(model)
+def main(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+    collection = mongo_connect().submission_records
+    model = load_model()
 
-    # for doc in collection.find(
-    #     {
-    #         "is_self_post": True,
-    #         "is_removed_by_author": False,
-    #         "is_removed_by_moderator": False,
-    #         "selftext": {"$ne": ""},
-    #         "mbti": {"$exists": False},
-    #     }
-    # ):
+    df = pd.read_csv(config.property("trainingData"), nrows=0)
+    labels = get_labels(df)
 
-    #     text = transform(doc["selftext"])
-    #     classification = classify(text, models)
+    print("Started classification")
+    for doc in collection.find(
+        {
+            "toxicity": {"$exists": False},
+        }
+    ):
 
-    #     collection.update_one(
-    #         {"id": doc["id"]},
-    #         {"$set": {"mbti": classification}},
-    #     )
+        results = {}
+        if doc["title"]:
+            results["title"] = classify(doc["title"], model, labels)
+
+        if (
+            doc["selftext"]
+            and not doc["is_removed_by_author"]
+            and not doc["is_removed_by_moderator"]
+        ):
+            results["text"] = classify(doc["selftext"], model, labels)
+
+        collection.update_one(
+            {"id": doc["id"]},
+            {"$set": {"toxicity": results}},
+        )
 
 
 if __name__ == "__main__":

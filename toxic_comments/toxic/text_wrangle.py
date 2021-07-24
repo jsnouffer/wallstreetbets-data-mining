@@ -47,11 +47,14 @@ def stemming(sentence):
     stemSentence = stemSentence.strip()
     return stemSentence
 
-
-def pre_process(df):
+def get_labels(df):
     df = df.drop(["id", "set", "toxicity"], axis=1)
     labels = list(df.columns)
     labels.remove("comment_text")
+    return labels
+
+def pre_process(df):
+    labels = get_labels(df)
 
     df["comment_text"] = df["comment_text"].apply(removeStopWords)
     df["comment_text"] = df["comment_text"].apply(stemming)
