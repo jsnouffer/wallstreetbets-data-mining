@@ -1,0 +1,22 @@
+transformers:
+  type: BERT
+  model: Hate-speech-CNERG/bert-base-uncased-hatexplain
+  labels: 3
+
+mongoUrl: localhost:27017
+mongoDB: wallstreetbets
+
+logging:
+  version: 1
+  formatters:
+    simple:
+      format: "%(name)s - %(lineno)d -  %(message)s"
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+  root:
+    level: INFO
+    handlers: [console]
