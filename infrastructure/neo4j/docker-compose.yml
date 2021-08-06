@@ -1,0 +1,13 @@
+version: '2'
+services:
+  neo4j:
+    image: 'docker.io/bitnami/neo4j:4-debian-10'
+    ports:
+      - '7474:7474'
+      - '7473:7473'
+      - '7687:7687'
+    volumes:
+      - '/mnt/volume_nyc1_01/neo4j:/bitnami'
+    environment:
+      - NEO4J_HOST=localhost
+    restart: always
