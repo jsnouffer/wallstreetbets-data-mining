@@ -54,7 +54,7 @@ class PretrainedRobertaModel:
         return predictions
 
 
-def load_models(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+def load_models():
     tasks = ["emotion", "sentiment"]
     models = {}
 

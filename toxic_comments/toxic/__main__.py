@@ -18,47 +18,58 @@ parser.add_argument(
     const=True,
     default=False,
 )
+parser.add_argument(
+    "--evaluate-model",
+    metavar="evaluate_model",
+    nargs="?",
+    const=True,
+    default=False,
+)
 args = parser.parse_args()
 
 
-def generate_model(
-    config: ConfigService = Provide[ConfigContainer.config_svc].provider(),
-):
+def generate_model(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
     df = pd.read_csv(config.property("trainingData"))
+    # df = df.head(500)
     logger.info(f"Input shape = {df.shape}")
     sequences, targets, labels = pre_process(df)
     train(sequences, targets, labels)
 
+def evaluate_model(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+    df = pd.read_csv(config.property("trainingData"))
+    sequences, targets, labels = pre_process(df)
+    models = load_model()
+    evaluate_models(sequences, targets, labels, models)
 
 def main(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
     collection = mongo_connect().submission_records
-    model = load_model()
+    models = load_model()
 
-    df = pd.read_csv(config.property("trainingData"), nrows=0)
-    labels = get_labels(df)
+    # df = pd.read_csv(config.property("trainingData"), nrows=0)
+    # labels = get_labels(df)
 
-    print("Started classification")
-    for doc in collection.find(
-        {
-            "toxicity": {"$exists": False},
-        }
-    ):
+    # print("Started classification")
+    # for doc in collection.find(
+    #     {
+    #         "toxicity": {"$exists": False},
+    #     }
+    # ):
 
-        results = {}
-        if doc["title"]:
-            results["title"] = classify(doc["title"], model, labels)
+    #     results = {}
+    #     if doc["title"]:
+    #         results["title"] = classify(doc["title"], model, labels)
 
-        if (
-            doc["selftext"]
-            and not doc["is_removed_by_author"]
-            and not doc["is_removed_by_moderator"]
-        ):
-            results["text"] = classify(doc["selftext"], model, labels)
+    #     if (
+    #         doc["selftext"]
+    #         and not doc["is_removed_by_author"]
+    #         and not doc["is_removed_by_moderator"]
+    #     ):
+    #         results["text"] = classify(doc["selftext"], model, labels)
 
-        collection.update_one(
-            {"id": doc["id"]},
-            {"$set": {"toxicity": results}},
-        )
+    #     collection.update_one(
+    #         {"id": doc["id"]},
+    #         {"$set": {"toxicity": results}},
+    #     )
 
 
 if __name__ == "__main__":
@@ -66,5 +77,7 @@ if __name__ == "__main__":
         reply = str(input("Confirm to generate new model files (Yes): ")).strip()
         if reply == "Yes":
             generate_model()
+    elif args.evaluate_model:
+        evaluate_model()
     else:
         main()

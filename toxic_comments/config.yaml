@@ -1,5 +1,5 @@
 trainingData: /home/jason/toxic_model/train_preprocessed.csv
-modelLocation: /home/jason/toxic_model/toxic_keras/
+modelLocation: /home/jason/toxic_model/toxic_keras_ensemble/
 
 mongoUrl: localhost:27017
 mongoDB: wallstreetbets

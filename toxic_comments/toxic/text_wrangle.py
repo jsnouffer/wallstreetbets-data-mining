@@ -37,7 +37,6 @@ def removeStopWords(sentence):
     global re_stop_words
     return re_stop_words.sub(" ", sentence)
 
-
 def stemming(sentence):
     stemSentence = ""
     for word in sentence.split():

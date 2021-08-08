@@ -1,8 +1,10 @@
+import numpy as np
 from .config import ConfigContainer, ConfigService
 from dependency_injector.wiring import Provide
 from keras import models
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_class_weight
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Dense, Embedding, LSTM
@@ -11,15 +13,48 @@ from tensorflow.keras.losses import BinaryCrossentropy
 from tensorflow.keras.metrics import CategoricalCrossentropy
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.framework.errors_impl import InvalidArgumentError
-
+from tensorflow.python.keras import backend as K
 
 MAX_VOCAB = 500
 
 
-def load_model(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
-    return models.load_model(config.property("modelLocation"))
+def calculating_class_weights(y_true):
+    number_dim = np.shape(y_true)[1]
+    weights = np.empty([number_dim, 2])
+    for i in range(number_dim):
+        weights[i] = compute_class_weight("balanced", [0.0, 1.0], y_true[:, i])
+    return weights
 
-def classify(sample, model, labels, config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+
+def get_weighted_loss(weights):
+    def weighted_loss(y_true, y_pred):
+        return K.mean(
+            (weights[:, 0] ** (1 - y_true))
+            * (weights[:, 1] ** (y_true))
+            * K.binary_crossentropy(y_true, y_pred),
+            axis=-1,
+        )
+
+    return weighted_loss
+
+
+def load_model(config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
+    weighted_model = models.load_model(
+        config.property("modelLocation") + "weighted/", compile=False
+    )
+    weighted_model.compile()
+    unweighted_model = models.load_model(
+        config.property("modelLocation") + "unweighted/", compile=False
+    )
+    unweighted_model.compile()
+    return [weighted_model, unweighted_model]
+
+
+def classify(
+    sample,
+    model,
+    labels,
+):
     predictions = {}
     try:
         prediction = model.predict([sample])
@@ -29,8 +64,9 @@ def classify(sample, model, labels, config: ConfigService = Provide[ConfigContai
 
     for l in range(len(labels)):
         predictions[labels[l]] = True if prediction[0][l] > 0.5 else False
-    
+
     return predictions
+
 
 def get_encoder(sequences):
     encoder = TextVectorization(
@@ -41,7 +77,7 @@ def get_encoder(sequences):
     return encoder
 
 
-def get_model(sequences, targets):
+def get_model(sequences, targets, loss_function):
     encoder = get_encoder(sequences)
 
     model = Sequential(
@@ -57,7 +93,7 @@ def get_model(sequences, targets):
     )
 
     model.compile(
-        loss=BinaryCrossentropy(from_logits=False),
+        loss=loss_function,
         optimizer=Adam(1e-4),
         metrics=[CategoricalCrossentropy()],
     )
@@ -65,11 +101,14 @@ def get_model(sequences, targets):
     return model
 
 
-def train(sequences, targets, labels, config: ConfigService = Provide[ConfigContainer.config_svc].provider()):
-    model = get_model(sequences, targets)
+def train_model(
+    sequences,
+    targets,
+    model,
+):
 
     X_train, X_test, y_train, y_test = train_test_split(
-        sequences, targets, test_size=0.1, random_state=42
+        sequences, targets, test_size=0.2, random_state=42
     )
 
     model.fit(
@@ -81,14 +120,49 @@ def train(sequences, targets, labels, config: ConfigService = Provide[ConfigCont
         callbacks=[EarlyStopping(patience=5)],
     )
 
-    pred = model.predict(X_test)
+    # pred = model.predict(X_test)
 
+    # THRESH = 0.5
+    # for i in range(len(labels)):
+    #     y_true = y_test[:, i]
+    #     y_pred = (pred[:, i] > THRESH).astype(int)
+    #     print(f"======={labels[i]}")
+    #     print(classification_report(y_true, y_pred))
+
+    # model.save(config.property("modelLocation"))
+
+
+def evaluate_models(sequences, targets, labels, models):
+    _, X_test, _, y_test = train_test_split(
+        sequences, targets, test_size=0.2, random_state=42
+    )
+    pred0 = models[0].predict(X_test)
+    pred1 = models[1].predict(X_test)
+
+    pred = np.mean(np.array([pred0, pred1]), axis=0)
     THRESH = 0.5
     for i in range(len(labels)):
         y_true = y_test[:, i]
         y_pred = (pred[:, i] > THRESH).astype(int)
-        print(f"======={labels[i]}")
+        print(labels[i])
         print(classification_report(y_true, y_pred))
+        print(confusion_matrix(y_true, y_pred))
 
-    model.save(config.property("modelLocation"))
 
+def train(
+    sequences,
+    targets,
+    labels,
+    config: ConfigService = Provide[ConfigContainer.config_svc].provider(),
+):
+    class_weights = calculating_class_weights(targets)
+    weighted_model = get_model(sequences, targets, get_weighted_loss(class_weights))
+    unweighted_model = get_model(
+        sequences, targets, BinaryCrossentropy(from_logits=False)
+    )
+
+    train_model(sequences, targets, weighted_model)
+    train_model(sequences, targets, unweighted_model)
+
+    weighted_model.save(config.property("modelLocation") + "weighted/")
+    unweighted_model.save(config.property("modelLocation") + "unweighted/")

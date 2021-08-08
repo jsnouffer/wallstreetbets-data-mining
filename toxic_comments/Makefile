@@ -19,5 +19,8 @@ update: ## Updates dependencies in virtual environment
 generate-model: venv ## Generate new model
 	CONFIG_ENV=config.env venv/bin/python -m toxic --generate-model
 
+evaluate-model: venv ## Evaluate model
+	CONFIG_ENV=config.env venv/bin/python -m toxic --evaluate-model
+
 run: venv ## Launches app using virtual environment
 	CONFIG_ENV=config.env venv/bin/python -m toxic
