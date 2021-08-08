@@ -52,12 +52,14 @@ def load_model(config: ConfigService = Provide[ConfigContainer.config_svc].provi
 
 def classify(
     sample,
-    model,
+    models,
     labels,
 ):
     predictions = {}
     try:
-        prediction = model.predict([sample])
+        pred0 = models[0].predict([sample])
+        pred1 = models[1].predict([sample])
+        prediction = (pred0 + pred1) / 2.0
     except InvalidArgumentError as e:
         print(e.message)
         return predictions

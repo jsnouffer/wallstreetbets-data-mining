@@ -245,7 +245,7 @@ weighted avg       0.99      0.99      0.99     31915
 [[31497   124]
  [  162   132]]
 
-with 80/20 split with ensemble (class weights and unweighted) and simple averaging
+with 80/20 split with ensemble (class weights and unweighted) and simple averaging ****
 identity_hate
               precision    recall  f1-score   support
 
@@ -318,3 +318,77 @@ weighted avg       0.94      0.95      0.95     31915
 
 [[28202   657]
  [ 1046  2010]]
+
+with 80/20 split with ensemble (class weights and unweighted) and weighted voting (class weight model has 2 votes)
+ identity_hate
+              precision    recall  f1-score   support
+
+         0.0       1.00      0.89      0.94     31621
+         1.0       0.07      0.91      0.14       294
+
+    accuracy                           0.89     31915
+   macro avg       0.54      0.90      0.54     31915
+weighted avg       0.99      0.89      0.94     31915
+
+[[28231  3390]
+ [   26   268]]
+insult
+              precision    recall  f1-score   support
+
+         0.0       0.99      0.91      0.95     30301
+         1.0       0.33      0.83      0.47      1614
+
+    accuracy                           0.91     31915
+   macro avg       0.66      0.87      0.71     31915
+weighted avg       0.96      0.91      0.92     31915
+
+[[27568  2733]
+ [  270  1344]]
+obscene
+              precision    recall  f1-score   support
+
+         0.0       0.99      0.96      0.98     30200
+         1.0       0.56      0.88      0.68      1715
+
+    accuracy                           0.96     31915
+   macro avg       0.78      0.92      0.83     31915
+weighted avg       0.97      0.96      0.96     31915
+
+[[29022  1178]
+ [  214  1501]]
+severe_toxic
+              precision    recall  f1-score   support
+
+         0.0       1.00      0.96      0.98     31594
+         1.0       0.19      0.96      0.32       321
+
+    accuracy                           0.96     31915
+   macro avg       0.60      0.96      0.65     31915
+weighted avg       0.99      0.96      0.97     31915
+
+[[30297  1297]
+ [   13   308]]
+threat
+              precision    recall  f1-score   support
+
+         0.0       1.00      0.90      0.95     31841
+         1.0       0.02      0.91      0.04        74
+
+    accuracy                           0.90     31915
+   macro avg       0.51      0.90      0.49     31915
+weighted avg       1.00      0.90      0.94     31915
+
+[[28612  3229]
+ [    7    67]]
+toxic
+              precision    recall  f1-score   support
+
+         0.0       0.98      0.86      0.92     28859
+         1.0       0.39      0.84      0.53      3056
+
+    accuracy                           0.86     31915
+   macro avg       0.68      0.85      0.72     31915
+weighted avg       0.92      0.86      0.88     31915
+
+[[24801  4058]
+ [  480  2576]]

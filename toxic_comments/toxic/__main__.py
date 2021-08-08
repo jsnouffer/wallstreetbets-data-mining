@@ -45,31 +45,31 @@ def main(config: ConfigService = Provide[ConfigContainer.config_svc].provider())
     collection = mongo_connect().submission_records
     models = load_model()
 
-    # df = pd.read_csv(config.property("trainingData"), nrows=0)
-    # labels = get_labels(df)
+    df = pd.read_csv(config.property("trainingData"), nrows=0)
+    labels = get_labels(df)
 
-    # print("Started classification")
-    # for doc in collection.find(
-    #     {
-    #         "toxicity": {"$exists": False},
-    #     }
-    # ):
+    print("Started classification")
+    for doc in collection.find(
+        {
+            "toxicity_ensemble": {"$exists": False},
+        }
+    ):
 
-    #     results = {}
-    #     if doc["title"]:
-    #         results["title"] = classify(doc["title"], model, labels)
+        results = {}
+        if doc["title"]:
+            results["title"] = classify(doc["title"], models, labels)
 
-    #     if (
-    #         doc["selftext"]
-    #         and not doc["is_removed_by_author"]
-    #         and not doc["is_removed_by_moderator"]
-    #     ):
-    #         results["text"] = classify(doc["selftext"], model, labels)
+        if (
+            doc["selftext"]
+            and not doc["is_removed_by_author"]
+            and not doc["is_removed_by_moderator"]
+        ):
+            results["text"] = classify(doc["selftext"], models, labels)
 
-    #     collection.update_one(
-    #         {"id": doc["id"]},
-    #         {"$set": {"toxicity": results}},
-    #     )
+        collection.update_one(
+            {"id": doc["id"]},
+            {"$set": {"toxicity_ensemble": results}},
+        )
 
 
 if __name__ == "__main__":
